@@ -7,6 +7,12 @@
 object Playhere {
   def main(args: Array[String]) {
 
+    //-----------------------Structural vs static vs duck typing-----------------------
+    println("---------------------------------------------------------------------------------")
+    println("Structural vs static vs duck typing")
+    println
+    //---------------------------------------------------------------------------------
+
     //define case classes to shorten the definition (automatic add: setters, getters, toStrings, toHash)
     case class a(bar: Int, bars: String)
     case class b(bar: String, bars: Int)
@@ -44,8 +50,7 @@ object Playhere {
     println(koo((x, y) => x + y))
 
     //We are using e after all
-    println(e)
-
+    println("Up until now e had value a = <lazy>, now: " + e )
 
     //Moving on folks. Scala can get pretty intelligible
     //We need to specify return type Int (To use the + method: Int.+(Int))
@@ -55,8 +60,10 @@ object Playhere {
     //This should be 10
     println(f4(5, 5))
 
-    //---------------------------------------------------------------------------------
     //--------------------cycles, generators and the yield keyword---------------------
+    println("---------------------------------------------------------------------------------")
+    println("cycles, generators and the yield keyword")
+    println
     //---------------------------------------------------------------------------------
 
     val la: List[Int] = List(1, 2, 3)
@@ -78,10 +85,10 @@ object Playhere {
       x <- la
       y <- lb
       z <- lz
-      if (x.equals(z))}
+      if (x equals (z))}
       yield (x, y, z)
 
-    println("you can call the equal method: " + le)
+    println("you can call the equals method: " + le)
 
     le = for {
       x <- la;
@@ -92,8 +99,10 @@ object Playhere {
 
     println(" == is also a method in scala: " + le)
 
-    //---------------------------------------------------------------------------------
     //------------------Optional values!? Better than Java 8 Optional?-----------------
+    println("---------------------------------------------------------------------------------")
+    println("Optional values!? Better than Java 8 Optional?")
+    println
     //---------------------------------------------------------------------------------
 
     //Option can be distinguished between some and none
@@ -104,9 +113,9 @@ object Playhere {
 
     //list.lift returns an option
     //Get third element
-    println(showoptionally(lb.lift(2)))
+    println(showoptionally(lb lift (2)))
     //Get fifth element (Ops, out of range)
-    println(showoptionally(lb.lift(4)))
+    println(showoptionally(lb lift (4)))
 
     //Random operators are random
     val an = 1 :: 2 :: 3 :: Nil
@@ -133,8 +142,10 @@ object Playhere {
 
     println("Order has product: " + didThisReallyWork.get)
 
-    //---------------------------------------------------------------------------------
     //-------------------------What about hiding class members-------------------------
+    println("---------------------------------------------------------------------------------")
+    println("What about hiding class members")
+    println
     //---------------------------------------------------------------------------------
     class Time {
 
@@ -171,6 +182,109 @@ object Playhere {
     case class House(name: String)
 
     case class builder(name: String)
+
+    //------------Playing with classes. How to pretend that i know what i am doing-------------
+    println("---------------------------------------------------------------------------------")
+    println("Playing with classes. How to pretend that i know what i am doing")
+    println
+    //---------------------------------------------------------------------------------
+
+    //define an abstract class and some base traits
+    trait Food {
+      def amIfood = println("I am food!")
+    }
+    trait Edible {
+      def amIedible = println("I am also currently edible! Eat me fast please!")
+    }
+    abstract class Animal {
+      type CanEat <: Food
+      def eat (food : CanEat) = food.amIfood
+    }
+
+    //define concrete types of food
+    class Grass extends Food
+    class Meat extends Food with Edible {
+      //super.amIfood gets called first
+      override def amIfood = amIedible; super.amIfood
+    }
+
+    //animal implementation defines what is food and what is not
+    //Cows eat grass, Dogs eat meat
+    class Cow extends Animal {
+      type CanEat = Grass
+      override def eat(food: Grass) = food.amIfood
+    }
+    class Dog extends Animal {
+      type CanEat = Meat
+      override def eat(food: Meat) = food.amIfood
+    }
+
+    val betty = new Cow
+    betty.eat(new Grass)
+
+    val jimmy = new Dog
+    //Since scala methods are also operators and vice-versa. You can do this
+    jimmy eat (new Meat)
+
+    //Explicit Animal declaration will make porkie expect a CanEat type and not Grass awww
+    val porkie : Animal = new Cow
+
+    //This will return a compile error :( porkie can't eat :(
+    //porkie.eat(new Grass)
+
+
+
+    //Class scoping
+    class Outer {
+      class Inner
+      //Each Inner class instance is different from the other
+      def f(innie: Inner) = println("Got my own innie!")
+      //To accept any Inner instance use # operator!
+      def g(innie: Outer#Inner) = println("Got some innie. It works!")
+    }
+
+    val oi = new Outer
+    val bye = new Outer
+
+    oi.f (new oi.Inner)
+    oi.g (new bye.Inner)
+
+    //------------------------The implicit keyword. Magic some might say----------------------
+    println("---------------------------------------------------------------------------------")
+    println("The implicit keyword. Magic some might say")
+    println
+    //---------------------------------------------------------------------------------
+
+    //implicit is similar to extension methods (C#, kotlin) which also allow to add new methods to existing classes
+
+    //So one implicit purpose would be to add new behaviour (subtyping) to objects without necessarily exposing it
+
+    implicit def doubleToInt(x: Double) = x.toInt
+
+    //this now works! amazing
+    val x: Int = 3.5
+
+    println("My implicit conversion converts 3.5 double to " + x + " Int")
+
+    //OK. SHIT CAN NOT GET MORE COMPLICATED. I MEAN. WHAT IS THERE NOW? VIEW BOUNDS? CONTEXT BOUNDS? PFT PLEASE. OH..
+
+
+    //A view bound was a mechanism introduced in Scala to enable the use of some type A as if it were some type B.
+
+    //We know Grass can call Food method. What if Grass did not extend Food?
+    def f0[Grass <% Food](a: Grass) = a.amIfood
+
+    //Simple example, we can call an ordered class which implements <(other : Grass) : Boolean
+    //implicit conversion allows Scala to automatically infer calls without forcing the developer to call with Ordered[Type]
+    def f1[Grass <% Ordered[Grass]](a: Grass, b: Grass) = if (a < b) a else b
+
+    //While a view bound can be used with simple types (for example, A <% String), a context bound requires
+    // a parameterized type, such as Ordered[A] above, but unlike String.
+
+    //A context bound describes an implicit value instead of view bound's implicit conversion
+    //Here, we are obtaining the implicit value(Grass) to give to Ordering when comparing a and b
+    def f2[Grass : Ordering](a: Grass, b: Grass) = implicitly[Ordering[Grass]].compare(a, b)
+
 
   }
 }
