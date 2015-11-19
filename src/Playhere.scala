@@ -1,3 +1,5 @@
+import akka.actor.{Actor,Props}
+import akka.event.Logging
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -52,7 +54,7 @@ object Playhere {
     println(koo((x, y) => x + y))
 
     //We are using e after all
-    println("Up until now e had value a = <lazy>, now: " + e )
+    println("Up until now e had value a = <lazy>, now: " + e)
 
     //Moving on folks. Scala can get pretty intelligible
     //We need to specify return type Int (To use the + method: Int.+(Int))
@@ -174,7 +176,7 @@ object Playhere {
 
     //TODO: need more insight into covariant and contravariant patterns
     trait build[+B] {
-      def startBuilding(b: String )
+      def startBuilding(b: String)
     }
 
     trait prettyprinter[-A] {
@@ -186,8 +188,8 @@ object Playhere {
     case class builder(name: String)
 
     //List[+T] is covariant so it allows a subtype List[Int] to be assigned to a supertype List[Any]
-    val xs = List(1,2,3)
-    val xz : List[Any] = xs
+    val xs = List(1, 2, 3)
+    val xz: List[Any] = xs
 
     //------------Playing with classes. How to pretend that i know what i am doing-------------
     println("---------------------------------------------------------------------------------")
@@ -204,24 +206,28 @@ object Playhere {
     }
     abstract class Animal {
       type CanEat <: Food
-      def eat (food : CanEat) = food.amIfood
+
+      def eat(food: CanEat) = food.amIfood
     }
 
     //define concrete types of food
     class Grass extends Food
     class Meat extends Food with Edible {
       //super.amIfood gets called first
-      override def amIfood = amIedible; super.amIfood
+      override def amIfood = amIedible;
+      super.amIfood
     }
 
     //animal implementation defines what is food and what is not
     //Cows eat grass, Dogs eat meat
     class Cow extends Animal {
       type CanEat = Grass
+
       override def eat(food: Grass) = food.amIfood
     }
     class Dog extends Animal {
       type CanEat = Meat
+
       override def eat(food: Meat) = food.amIfood
     }
 
@@ -233,18 +239,20 @@ object Playhere {
     jimmy eat (new Meat)
 
     //Explicit Animal declaration will make porkie expect a CanEat type and not Grass awww
-    val porkie : Animal = new Cow
+    val porkie: Animal = new Cow
 
     //This will return a compile error :( porkie can't eat :(
     //porkie.eat(new Grass)
 
 
-
     //Class scoping
     class Outer {
+
       class Inner
+
       //Each Inner class instance is different from the other
       def f(innie: Inner) = println("Got my own innie!")
+
       //To accept any Inner instance use # operator!
       def g(innie: Outer#Inner) = println("Got some innie. It works!")
     }
@@ -252,8 +260,8 @@ object Playhere {
     val oi = new Outer
     val bye = new Outer
 
-    oi.f (new oi.Inner)
-    oi.g (new bye.Inner)
+    oi.f(new oi.Inner)
+    oi.g(new bye.Inner)
 
     //------------------------The implicit keyword. Magic some might say----------------------
     println("---------------------------------------------------------------------------------")
@@ -289,7 +297,7 @@ object Playhere {
 
     //A context bound describes an implicit value instead of view bound's implicit conversion
     //Here, we are obtaining the implicit value(Grass) to give to Ordering when comparing a and b
-    def f2[Grass : Ordering](a: Grass, b: Grass) = implicitly[Ordering[Grass]].compare(a, b)
+    def f2[Grass: Ordering](a: Grass, b: Grass) = implicitly[Ordering[Grass]].compare(a, b)
 
 
     //---------------------------More stuff. Listbuffer, extractors----------------------------
@@ -320,6 +328,33 @@ object Playhere {
     var nopenope = 3
 
     //@serializable... @unchecked
+
+    //---------------------------Scala concurrency: Actors -> Akka ----------------------------
+    println("---------------------------------------------------------------------------------")
+    println("Scala concurrency: Actors -> Akka")
+    println
+    //-----------------------------------------------------------------------------------------
+
+    //Stopped for reading: formal languages and context-free languages in Scala (Learning how to do parsers)
+    //Link: http://www.artima.com/pins1ed/combinator-parsing.html
+
+    //Stopped for reading:
+    //Actor Systems: http://doc.akka.io/docs/akka/snapshot/general/actor-systems.html#actor-systems
+    //Supervision and monitoring: http://doc.akka.io/docs/akka/snapshot/general/supervision.html#supervision
+
+
+    class DumbActor extends Actor {
+      val log = Logging(context.system, this)
+
+      def receive = {
+        case "test" => log.info("received test")
+        case _ => log.info("received unknown message")
+      }
+    }
+
+    val props1 = Props[DumbActor]
+
+
   }
 }
 
