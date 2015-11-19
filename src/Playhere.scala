@@ -1,5 +1,7 @@
+import scala.collection.mutable.ListBuffer
+
 /**
- * Created by withus on 11/18/15.
+ * Created by saraiva132 on 11/18/15.
  *
  * Personal playground to start learning Scala.
  * Use this file to test random stuff
@@ -85,8 +87,9 @@ object Playhere {
       x <- la
       y <- lb
       z <- lz
-      if (x equals (z))}
-      yield (x, y, z)
+      //gotta love how scala doesn't give a shit about parenthesis. This equals: if (x.equals(z))
+      if x equals z
+    } yield (x, y, z)
 
     println("you can call the equals method: " + le)
 
@@ -94,8 +97,8 @@ object Playhere {
       x <- la;
       y <- lb;
       z <- lz;
-      if (x != z)}
-      yield (x, y, z)
+      if (x != z)
+    } yield (x, y, z)
 
     println(" == is also a method in scala: " + le)
 
@@ -169,8 +172,7 @@ object Playhere {
       }
     }
 
-
-    //TODO: need more insight into covariant and contravariant
+    //TODO: need more insight into covariant and contravariant patterns
     trait build[+B] {
       def startBuilding(b: String )
     }
@@ -182,6 +184,10 @@ object Playhere {
     case class House(name: String)
 
     case class builder(name: String)
+
+    //List[+T] is covariant so it allows a subtype List[Int] to be assigned to a supertype List[Any]
+    val xs = List(1,2,3)
+    val xz : List[Any] = xs
 
     //------------Playing with classes. How to pretend that i know what i am doing-------------
     println("---------------------------------------------------------------------------------")
@@ -253,7 +259,7 @@ object Playhere {
     println("---------------------------------------------------------------------------------")
     println("The implicit keyword. Magic some might say")
     println
-    //---------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------
 
     //implicit is similar to extension methods (C#, kotlin) which also allow to add new methods to existing classes
 
@@ -286,6 +292,34 @@ object Playhere {
     def f2[Grass : Ordering](a: Grass, b: Grass) = implicitly[Ordering[Grass]].compare(a, b)
 
 
+    //---------------------------More stuff. Listbuffer, extractors----------------------------
+    println("---------------------------------------------------------------------------------")
+    println("More stuff. Listbuffer, extractors")
+    println
+    //-----------------------------------------------------------------------------------------
+
+    //user Listbuffer to obtain better performance
+    val buf = new ListBuffer[Int]
+    for (x <- xs) buf += x + 1
+    buf.toList
+
+    //extractors have the reserve purpose of injectors
+
+    //apply -> inject object from fields
+
+    //unapply -> extract fields from object
+
+
+    @volatile
+    var hel = 1
+
+    @transient
+    var nope = 2
+
+    @deprecated
+    var nopenope = 3
+
+    //@serializable... @unchecked
   }
 }
 
