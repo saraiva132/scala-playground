@@ -1,6 +1,9 @@
 import akka.actor.{Actor,Props}
 import akka.event.Logging
 import scala.collection.mutable.ListBuffer
+import concurrent.Future
+import concurrent.ExecutionContext.Implicits.global
+import scala.util.{Success, Failure}
 
 /**
  * Created by saraiva132 on 11/18/15.
@@ -401,6 +404,51 @@ object Playhere {
 
     //val props1 = Props[DumbActor]
 
+    //----------------------------------Future and Promises ----------------------------------
+    println("---------------------------------------------------------------------------------")
+    println("Future and Promises")
+    println
+    //-----------------------------------------------------------------------------------------
+
+    //A future is completed if it has value or incomplete if it has none
+    //A future may have two completed states:
+    //Successful: Returns a value
+    //Insuccessful: Returns an exception
+
+    class DoSomewhereInTheFuture {
+      def request = println("A request from the past has been accepted")
+    }
+
+    val intoTheFuture = new DoSomewhereInTheFuture
+
+    val theFuture: Future[Unit] = Future {
+      intoTheFuture.request // non-blocking long lasting computation
+    }
+
+    theFuture onComplete {
+      case Success => println("Calling back on the future with success")
+      case Failure => println("Calling back on the future with error")
+    }
+
+    //If the developer wants to chain Futures there are two approaches
+
+    //1 - Using high order functions: map, filter, foreach
+
+    //2 - Using for cycles
+
+
+    //val usdQuote = Future { connection.getCurrentValue(USD) }
+    //val chfQuote = Future { connection.getCurrentValue(CHF) }
+    //val purchase = for {
+    //  usd <- usdQuote
+    //  chf <- chfQuote
+    //  if isProfitable(usd, chf)
+    //} yield connection.buy(amount, chf)
+    //purchase onSuccess {
+    //  case _ => println("Purchased " + amount + " CHF")
+    //}
+
+    //Todo: Promises; Concorrent async; Timeouts;
 
   }
 }
