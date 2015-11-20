@@ -11,6 +11,53 @@ import scala.collection.mutable.ListBuffer
 object Playhere {
   def main(args: Array[String]) {
 
+    //--------------------------First and foremost! The underscore _ --------------------------
+    println("---------------------------------------------------------------------------------")
+    println("First and foremost! The underscore _")
+    println
+    //-----------------------------------------------------------------------------------------
+
+    println("Can you name all uses of _? (Is this how to learn scala?" )
+    println
+    println("import scala._                      Wild card -- all of Scala is imported")
+    println("import scala.{ Predef => _, _ }     Exception, everything except Predef")
+    println("def f[M[_]]                         Higher kinded type parameter")
+    println("def f(m: M[_])                      Existential type")
+    println("_ + _                               Anonymous function placeholder parameter")
+    println("m _                                 Eta expansion of method into method value")
+    println("m(_)                                Partial function application")
+    println("_ => 5                              Discarded parameter")
+    println("case _ =>                           Wild card pattern -- matches anything")
+    println("  val (a, _) = (1, 2)               same thing")
+    println("  for (_ <- 1 to 10)                same thing")
+    println("    f(xs: _*)                       Sequence xs is passed as multiple parameters to f(ys: T*)")
+    println("case Seq(xs @ _*)                   Identifier xs is bound to the whole matched sequence")
+    println("var i: Int = _                      Initialization to the default value")
+    println("def abc_<>!                         An underscore must separate alphanumerics from symbols on identifiers")
+    println("t._2                                Part of a method name, such as tuple getters")
+
+
+    //This all looks the same but is quite quite different
+
+    //Try to call this using sho(Array[String]("and","be","disappointed"))
+    def sho(x : Array[Any]) = x.length
+
+    //This actually works but basically you are inferring a specific type when you really do not care
+    def shoo[T](x : Array[T]) = x.length
+
+    //voila! existential types!
+    // Array[_] equals  Array[T] forSome { type T}
+    def shooo(x : Array[_]) = x.length
+
+    //This looks cool. Is this enough? NO! _ is dangerous because it does not allow scoping
+    //define scopes to allow a range of classes but ensure functionality (all charsequences have length)
+    def shoooo(x : Array[Q] forSome { type Q <: CharSequence}) = x.foreach(y => println("Word length:" + y.length))
+
+    println("My existential array has length: " + shooo(Array[String]("This","has","size","four")))
+
+
+    shoooo(Array[String]("This","has","size","four"))
+
     //-----------------------Structural vs static vs duck typing-----------------------
     println("---------------------------------------------------------------------------------")
     println("Structural vs static vs duck typing")
@@ -352,7 +399,7 @@ object Playhere {
       }
     }
 
-    val props1 = Props[DumbActor]
+    //val props1 = Props[DumbActor]
 
 
   }
