@@ -1,7 +1,7 @@
-import akka.actor.{Actor,Props}
+import akka.actor.{Actor, Props}
 import akka.event.Logging
 import scala.collection.mutable.ListBuffer
-import concurrent.Future
+import concurrent.{Future, Promise}
 import concurrent.ExecutionContext.Implicits.global
 import scala.util.{Success, Failure}
 
@@ -402,7 +402,8 @@ object Playhere {
       }
     }
 
-    //val props1 = Props[DumbActor]
+    //val system = ActorSystem("mySystem")
+    //val myActor = system.actorOf(Props[DumbActor], "myactor2")
 
     //----------------------------------Future and Promises ----------------------------------
     println("---------------------------------------------------------------------------------")
@@ -421,13 +422,13 @@ object Playhere {
 
     val intoTheFuture = new DoSomewhereInTheFuture
 
-    val theFuture: Future[Unit] = Future {
+    val theFuture : Future[Unit] = Future {
       intoTheFuture.request // non-blocking long lasting computation
     }
 
     theFuture onComplete {
-      case Success => println("Calling back on the future with success")
-      case Failure => println("Calling back on the future with error")
+      case Success(_) => println("Calling back on the future with success")
+      case Failure(_) => println("Calling back on the future with error")
     }
 
     //If the developer wants to chain Futures there are two approaches
@@ -437,18 +438,40 @@ object Playhere {
     //2 - Using for cycles
 
 
-    //val usdQuote = Future { connection.getCurrentValue(USD) }
-    //val chfQuote = Future { connection.getCurrentValue(CHF) }
-    //val purchase = for {
-    //  usd <- usdQuote
-    //  chf <- chfQuote
-    //  if isProfitable(usd, chf)
-    //} yield connection.buy(amount, chf)
-    //purchase onSuccess {
-    //  case _ => println("Purchased " + amount + " CHF")
-    //}
+    //This is a dummy example and things are not really supposed to make too much sense
+    class dummyMoney {
+      def getCurrentValue(currency : String) : Int = currency match {
+        case "USD" => 50
+        case "CHF" => 25
+        case _ => 100
+      }
+      def isProfitable(one : Int, other : Int) = true
+    }
 
-    //Todo: Promises; Concorrent async; Timeouts;
+    val dummy = new dummyMoney
+    val usdQuote = Future { dummy.getCurrentValue("USD") }
+    val chfQuote = Future { dummy.getCurrentValue("CHF") }
+    val purchase = for {
+      usd <- usdQuote
+      chf <- chfQuote
+      if dummy.isProfitable(chf, usd)
+    } yield println("Second callback")
+
+    //Finally do something
+    purchase onSuccess {
+      case _ => println("Purchased " + 50 + " CHF")
+    }
+
+
+    //Interesting methods!
+
+    //recover -> On fail add a recover method (sequential)
+    //recoverwith -> Same as recover
+    //fallBackTo -> On fail attach another future as a counter measure
+    //andThen -> Chain several futures
+    //You can block and wait for a fucking Future to terminate using keyworkd await
+
+    //Todo: Promises Concorrent async; Timeouts;
 
   }
 }
