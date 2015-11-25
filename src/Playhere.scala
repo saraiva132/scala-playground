@@ -478,7 +478,53 @@ object Playhere {
     //andThen -> Chain several futures
     //You can block and wait for a fucking Future to terminate using keyworkd await
 
-    //Todo: Promises Concorrent async; Timeouts;
+    //Todo: Timeouts;
+
+    case class TaxCut(reduction : Int)
+    case class LameExcuse(msg: String) extends Exception(msg)
+
+    object Government {
+      def redeemCampaignPledge(): Future[TaxCut] = {
+        val p = Promise[TaxCut]()
+        Future {
+          println("Starting the new legislative period.")
+          Thread.sleep(2000)
+          p.success(TaxCut(20))
+          println("We reduced the taxes! You must reelect us!!!!")
+        }
+        p.future
+      }
+
+      def fakeCampaignPledge(): Future[TaxCut] = {
+        val p = Promise[TaxCut]()
+        Future {
+          println("Starting the new legislative period.")
+          Thread.sleep(2000)
+          p.failure(LameExcuse("global economy crisis"))
+          println("We didn't fulfill our promises, but surely they'll understand.")
+        }
+        p.future
+      }
+
+    }
+
+    def onComplete(task : Future[_]) = {
+      task.onComplete {
+        case Success(TaxCut(reduction)) =>
+          println(s"A miracle! They really cut our taxes by $reduction percentage points!")
+        case Failure(ex) =>
+          println(s"They broke their promises! Again! Because of a ${ex.getMessage}")
+      }
+    }
+
+    val taxCutFake: Future[TaxCut] = Government.fakeCampaignPledge()
+    val taxCutF: Future[TaxCut] = Government.redeemCampaignPledge()
+    println("Now that they're elected, let's see if they remember their promises...")
+    onComplete(taxCutF)
+    onComplete(taxCutFake)
+
+    println("Going to sleep. Maybe some promises will be completed now..")
+    Thread.sleep(5000)
 
   }
 }
