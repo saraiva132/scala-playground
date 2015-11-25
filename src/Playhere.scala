@@ -349,6 +349,13 @@ object Playhere {
     //Here, we are obtaining the implicit value(Grass) to give to Ordering when comparing a and b
     def f2[Grass: Ordering](a: Grass, b: Grass) = implicitly[Ordering[Grass]].compare(a, b)
 
+    //Magic type bounds! Together with implicit parameteres >.< let the magic begin
+    class Container[M](value : M) { def proccessMagic(implicit magic : M =:= Int) = 123 + value }
+
+    class SubContainer[A](value: A) { def addIt(implicit evidence: A <:< Int) = 123 + value }
+
+    println("Called Container implicitly: " + (new Container(12)).proccessMagic)
+    println("Called SubContainer implicitly: " + (new SubContainer(-50)).addIt)
 
     //---------------------------More stuff. Listbuffer, extractors----------------------------
     println("---------------------------------------------------------------------------------")
