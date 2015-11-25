@@ -526,6 +526,46 @@ object Playhere {
     println("Going to sleep. Maybe some promises will be completed now..")
     Thread.sleep(5000)
 
+
+    //------------------------Staying DRY With Higher-order Functions -------------------------
+    println("---------------------------------------------------------------------------------")
+    println("Staying DRY With Higher-order Functions")
+    println
+    //-----------------------------------------------------------------------------------------
+
+    //Scala wizards must know how to perform code reuse with higher-order functions
+
+    //Lets try to filters mails
+
+    //define a class to operate on
+    case class Email( subject: String,
+                      text: String,
+                      sender: String,
+                      recipient: String)
+
+
+    //define a type for the filter predicate and a method that filters
+    type EmailFilter = Email => Boolean
+    def newMailsForUser(mails: Seq[Email], f: EmailFilter) = mails.filter(f)
+
+
+    //define filter options
+    val sentByOneOf: Set[String] => EmailFilter =
+      senders => email => senders.contains(email.sender)
+    val notSentByAnyOf: Set[String] => EmailFilter =
+      senders => email => !senders.contains(email.sender)
+    val minimumSize: Int => EmailFilter = n => email => email.text.size >= n
+    //maximumSize is a function that tranforms a integer into an EmailFilter
+    val maximumSize: Int => EmailFilter = n => {email => email.text.size <= n}
+
+    val emailFilter: EmailFilter = notSentByAnyOf(Set("johndoe@example.com"))
+    val mails = Email(
+      subject = "It's me again, your stalker friend!",
+      text = "Hello my friend! How are you?",
+      sender = "johndoe@example.com",
+      recipient = "me@example.com") :: Nil
+    newMailsForUser(mails, emailFilter) // returns an empty list
+
   }
 }
 
