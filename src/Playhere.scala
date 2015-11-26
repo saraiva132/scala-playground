@@ -561,7 +561,6 @@ object Playhere {
     type EmailFilter = Email => Boolean
     def newMailsForUser(mails: Seq[Email], f: EmailFilter) = mails.filter(f)
 
-
     //define filter options
     object filterOptions {
 
@@ -592,7 +591,21 @@ object Playhere {
         n => sizeConstraint( _ <= n)
     }
 
+    object processOptions {
+      val addMissingSubject = (email: Email) =>
+        if (email.subject.isEmpty) email.copy(subject = "No subject")
+        else email
+      val checkSpelling = (email: Email) =>
+        email.copy(text = email.text.replaceAll("your", "you're"))
+      val removeInappropriateLanguage = (email: Email) =>
+        email.copy(text = email.text.replaceAll("dynamic typing", "**CENSORED**"))
+      val addAdvertismentToFooter = (email: Email) =>
+        email.copy(text = email.text + "\nThis mail sent via Super Awesome Free Mail")
+    }
+
     import filterOptions._
+    import processOptions._
+
 
     //The developer should have a very high level and simple interface exposed. Hide all the complex logic
     //If you look at this filter it almost looks like it is easy
@@ -602,19 +615,32 @@ object Playhere {
       maximumSize(10000)
     )
 
+    val pipeline = Function.chain(Seq(
+      addMissingSubject,
+      checkSpelling,
+      removeInappropriateLanguage,
+      addAdvertismentToFooter))
+
     val mails = Email(
       subject = "It's me again, your stalker friend!",
       text = "Hello my friend! How are you?",
       sender = "johndoe@example.com",
       recipient = "me@example.com") :: Email(
       subject = "I am still waiting..",
-      text = "Hey!? WHy do you not answer?",
-      sender = "yourfriend@example.com",
+      text = "Hey!? WHy do you not answer? your scaring me",
+      sender = "friend@example.com",
       recipient = "me@example.com") :: Nil
 
     val filterredEmails = newMailsForUser(mails, filter) // returns an empty list
 
     println(s"Mails after filter: ${filterredEmails}")
+
+    //process mails (filterredEmails.foreach(pipeline(_)
+    val processedEmails = for(
+      x <- filterredEmails
+    ) yield pipeline(x)
+
+    println(s"Mails after process: ${processedEmails}")
 
   }
 }
