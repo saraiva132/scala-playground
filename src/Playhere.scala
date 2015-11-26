@@ -143,7 +143,7 @@ object Playhere {
       if x equals z
     } yield (x, y, z)
 
-    println("you can call the equals method: " + le)
+    println(s"you can call the equals method: ${le}")
 
     le = for {
       x <- la;
@@ -152,7 +152,21 @@ object Playhere {
       if (x != z)
     } yield (x, y, z)
 
-    println(" == is also a method in scala: " + le)
+    println(s" == is also a method in scala: ${le}" )
+
+    //Using scala fold higher-order function
+    val numbers = List(5, 4, 8, 6, 2)
+
+    val cum = numbers.fold(0) { (z, i) =>
+      z + i
+    }
+
+    val muc = numbers.fold(25) { (z,i) =>
+      z - i
+    }
+
+    println(s"Accumulated value is: ${cum}")
+    println(s"Accumulated value is: ${muc}")
 
     //------------------Optional values!? Better than Java 8 Optional?-----------------
     println("---------------------------------------------------------------------------------")
@@ -550,15 +564,25 @@ object Playhere {
 
 
     //define filter options
-    val sentByOneOf: Set[String] => EmailFilter =
-      senders => email => senders.contains(email.sender)
-    val notSentByAnyOf: Set[String] => EmailFilter =
-      senders => email => !senders.contains(email.sender)
-    val minimumSize: Int => EmailFilter = n => email => email.text.size >= n
-    //maximumSize is a function that tranforms a integer into an EmailFilter
-    val maximumSize: Int => EmailFilter = n => {email => email.text.size <= n}
+    object filterOptions {
+      //This helps code reuse (keep it DRY)
+      type SizeChecker = Int => Boolean
+      val sizeConstraint: SizeChecker => EmailFilter = f => email => f(email.text.size)
 
-    val emailFilter: EmailFilter = notSentByAnyOf(Set("johndoe@example.com"))
+      //sent is a function that transforms a set of strings into an EmailFilter
+      val sentByOneOf: Set[String] => EmailFilter =
+        senders => { email => senders.contains(email.sender) }
+      val notSentByAnyOf: Set[String] => EmailFilter =
+        senders => email => !senders.contains(email.sender)
+
+      //Size is a function that tranforms a integer into an EmailFilter
+      val minimumSize: Int => EmailFilter =
+        n => sizeConstraint( _ >= n)
+      val maximumSize: Int => EmailFilter =
+        n => sizeConstraint(_ <= n)
+    }
+
+    val emailFilter: EmailFilter = filterOptions.notSentByAnyOf(Set("johndoe@example.com"))
     val mails = Email(
       subject = "It's me again, your stalker friend!",
       text = "Hello my friend! How are you?",
