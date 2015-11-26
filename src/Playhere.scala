@@ -56,8 +56,7 @@ object Playhere {
     //define scopes to allow a range of classes but ensure functionality (all charsequences have length)
     def shoooo(x : Array[Q] forSome { type Q <: CharSequence}) = x.foreach(y => println("Word length:" + y.length))
 
-    println("My existential array has length: " + shooo(Array[String]("This","has","size","four")))
-
+    println(s"My existential array has length: ${shooo(Array[String]("This","has","size","four"))}")
 
     shoooo(Array[String]("This","has","size","four"))
 
@@ -565,30 +564,57 @@ object Playhere {
 
     //define filter options
     object filterOptions {
+
+      //Since we know a predicate returns a boolean. We can define a generic method that takes as an argument (Anything => Boolean)
+      def complement[A](predicate: A => Boolean) = (a: A) => !predicate(a)
+      //for every predicate if exists any that pred => pred(a)
+      def any[A](predicates: (A => Boolean)*): A => Boolean = { a => predicates.exists(pred => pred(a)) }
+      def none[A](predicates: (A => Boolean)*) = complement(any(predicates: _*))
+      def every[A](predicates: (A => Boolean)*) = none(predicates.view.map(complement(_)): _*)
+
       //This helps code reuse (keep it DRY)
       type SizeChecker = Int => Boolean
-      val sizeConstraint: SizeChecker => EmailFilter = f => email => f(email.text.size)
+      // val siZeConstraint : {Int => Boolean} => { Email => Boolean } =
+      // { Int => Boolean } => { email => f(email.text.size) }
+      //Basically f represents an High-order function that takes an Int as a parameter
+      val sizeConstraint: SizeChecker => EmailFilter =
+        f => { email => f(email.text.size)}
 
       //sent is a function that transforms a set of strings into an EmailFilter
       val sentByOneOf: Set[String] => EmailFilter =
         senders => { email => senders.contains(email.sender) }
-      val notSentByAnyOf: Set[String] => EmailFilter =
-        senders => email => !senders.contains(email.sender)
+      val notSentByAnyOf = sentByOneOf andThen (complement(_))
 
       //Size is a function that tranforms a integer into an EmailFilter
       val minimumSize: Int => EmailFilter =
-        n => sizeConstraint( _ >= n)
+        n => sizeConstraint( _ >= n )
       val maximumSize: Int => EmailFilter =
-        n => sizeConstraint(_ <= n)
+        n => sizeConstraint( _ <= n)
     }
 
-    val emailFilter: EmailFilter = filterOptions.notSentByAnyOf(Set("johndoe@example.com"))
+    import filterOptions._
+
+    //The developer should have a very high level and simple interface exposed. Hide all the complex logic
+    //If you look at this filter it almost looks like it is easy
+    val filter: EmailFilter = every(
+      notSentByAnyOf(Set("johndoe@example.com")),
+      minimumSize(0),
+      maximumSize(10000)
+    )
+
     val mails = Email(
       subject = "It's me again, your stalker friend!",
       text = "Hello my friend! How are you?",
       sender = "johndoe@example.com",
+      recipient = "me@example.com") :: Email(
+      subject = "I am still waiting..",
+      text = "Hey!? WHy do you not answer?",
+      sender = "yourfriend@example.com",
       recipient = "me@example.com") :: Nil
-    newMailsForUser(mails, emailFilter) // returns an empty list
+
+    val filterredEmails = newMailsForUser(mails, filter) // returns an empty list
+
+    println(s"Mails after filter: ${filterredEmails}")
 
   }
 }
